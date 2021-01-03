@@ -13,6 +13,8 @@ Follow the steps below to execute the example:
 
         ./gradlew bootRun
         
+2. Navigate to [http://localhost:8080/video](http://localhost:8080/video) in a web browser to see a cat video loaded in the video player.
+        
 ## Bugs and Feedback
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/gregwhitaker/springboot-video-example/issues).
 

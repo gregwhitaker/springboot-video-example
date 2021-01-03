@@ -113,6 +113,13 @@ public class MediaController {
         }
     }
 
+    /**
+     * Get the path to the example video in the resources directory.
+     *
+     * @param mediaName name of media file to retrieve
+     * @return path to example video in resources directory
+     * @throws FileNotFoundException
+     */
     private Path getMediaPath(String mediaName) throws FileNotFoundException {
         final URL mediaResource = MediaController.class.getClassLoader().getResource(mediaName);
 
