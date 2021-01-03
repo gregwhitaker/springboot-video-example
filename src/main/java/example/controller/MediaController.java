@@ -9,12 +9,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -28,7 +25,15 @@ import java.nio.file.Paths;
 @Controller
 public class MediaController {
     private static final Logger LOG = LoggerFactory.getLogger(MediaController.class);
+    private static final String CONTENT_TYPE_MP4 = "video/mp4";
 
+    /**
+     * Serves video stream.
+     *
+     * @param mediaName name of media to play
+     * @param rangeHeader content range header
+     * @return video stream
+     */
     @GetMapping(value = "/media/{mediaName}")
     public ResponseEntity<StreamingResponseBody> getMediaStream(@PathVariable("mediaName") String mediaName,
                                                                 @RequestHeader(value = "Range", required = false) String rangeHeader) {
@@ -42,7 +47,7 @@ public class MediaController {
             final HttpHeaders responseHeaders = new HttpHeaders();
 
             if (rangeHeader == null) {
-                responseHeaders.add("Content-Type", "video/mp4");
+                responseHeaders.add("Content-Type", CONTENT_TYPE_MP4);
                 responseHeaders.add("Content-Length", fileSize.toString());
                 responseStream = os -> {
                     try (RandomAccessFile file = new RandomAccessFile(filePath.toFile(), "r")) {
@@ -81,7 +86,7 @@ public class MediaController {
                 LOG.info("Received request for byte range: {} - {}", rangeStart, rangeEnd);
 
                 String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
-                responseHeaders.add("Content-Type", "video/mp4");
+                responseHeaders.add("Content-Type", CONTENT_TYPE_MP4);
                 responseHeaders.add("Content-Length", contentLength);
                 responseHeaders.add("Accept-Ranges", "bytes");
                 responseHeaders.add("Content-Range", "bytes" + " " + rangeStart + "-" + rangeEnd + "/" + fileSize);
