@@ -1,4 +1,6 @@
 # springboot-video-example
+![Build](https://github.com/gregwhitaker/springboot-video-example/workflows/Build/badge.svg)
+
 An example of serving a seekable video stream using Spring Boot.
 
 ## Building the Example
