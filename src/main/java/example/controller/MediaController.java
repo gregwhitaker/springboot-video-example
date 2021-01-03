@@ -25,6 +25,11 @@ import java.nio.file.Paths;
 @Controller
 public class MediaController {
     private static final Logger LOG = LoggerFactory.getLogger(MediaController.class);
+
+    private static final String HEADER_CONTENT_TYPE = "Content-Type";
+    private static final String HEADER_CONTENT_LENGTH = "Content-Length";
+    private static final String HEADER_ACCEPT_RANGES = "Accept-Ranges";
+    private static final String HEADER_CONTENT_RANGE = "Content-Range";
     private static final String CONTENT_TYPE_MP4 = "video/mp4";
 
     /**
@@ -39,16 +44,15 @@ public class MediaController {
                                                                 @RequestHeader(value = "Range", required = false) String rangeHeader) {
         try {
             StreamingResponseBody responseStream;
-
-            Path filePath = getMediaPath(mediaName);
-            Long fileSize = Files.size(filePath);
-
-            byte[] buffer = new byte[1024];
             final HttpHeaders responseHeaders = new HttpHeaders();
 
+            final Path filePath = getMediaPath(mediaName);
+            final long fileSize = Files.size(filePath);
+
+            byte[] buffer = new byte[1024];
             if (rangeHeader == null) {
-                responseHeaders.add("Content-Type", CONTENT_TYPE_MP4);
-                responseHeaders.add("Content-Length", fileSize.toString());
+                responseHeaders.add(HEADER_CONTENT_TYPE, CONTENT_TYPE_MP4);
+                responseHeaders.add(HEADER_CONTENT_LENGTH, Long.toString(fileSize));
                 responseStream = os -> {
                     try (RandomAccessFile file = new RandomAccessFile(filePath.toFile(), "r")) {
                         long pos = 0;
@@ -76,9 +80,11 @@ public class MediaController {
                 if (ranges.length > 1) {
                     rangeEnd = Long.parseLong(ranges[1]);
                 } else {
+                    // If range is not found then just request the whole file
                     rangeEnd = fileSize - 1;
                 }
 
+                // Check to make sure that content range is not outside the length of the file
                 if (fileSize < rangeEnd) {
                     rangeEnd = fileSize - 1;
                 }
@@ -86,10 +92,10 @@ public class MediaController {
                 LOG.info("Received request for byte range: {} - {}", rangeStart, rangeEnd);
 
                 String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
-                responseHeaders.add("Content-Type", CONTENT_TYPE_MP4);
-                responseHeaders.add("Content-Length", contentLength);
-                responseHeaders.add("Accept-Ranges", "bytes");
-                responseHeaders.add("Content-Range", "bytes" + " " + rangeStart + "-" + rangeEnd + "/" + fileSize);
+                responseHeaders.add(HEADER_CONTENT_TYPE, CONTENT_TYPE_MP4);
+                responseHeaders.add(HEADER_CONTENT_LENGTH, contentLength);
+                responseHeaders.add(HEADER_ACCEPT_RANGES, "bytes");
+                responseHeaders.add(HEADER_CONTENT_RANGE, "bytes" + " " + rangeStart + "-" + rangeEnd + "/" + fileSize);
 
                 final Long _rangeEnd = rangeEnd;
                 responseStream = os -> {
